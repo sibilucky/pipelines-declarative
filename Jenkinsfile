@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE = 'nextcloud'  // The name of the Docker image for Nextcloud
         DOCKER_TAG = 'latest'       // Docker tag (you can change this based on your needs)
         DOCKER_REGISTRY = 'docker.io'  // Docker registry (change if you use a private registry)
-        DOCKER_USER = 'your-dockerhub-username'  // Your DockerHub username
+        DOCKER_USER = 'sibisam2301'  // Your DockerHub username
         DOCKER_CREDENTIALS_ID = 'docker-credentials-id'  // Jenkins credentials ID for Docker login
     }
 
@@ -13,7 +13,7 @@ pipeline {
         stage('Checkout SCM') {
             steps {
                 // Checkout code from the Git repository where the Dockerfile and any configuration files are stored
-                checkout scm
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'docker-credentials-id', url: 'https://github.com/sibilucky/pipelines-declarative.git']])
             }
         }
 
@@ -23,7 +23,7 @@ pipeline {
                     // Build the Docker image for Nextcloud
                     echo 'Building Nextcloud Docker Image...'
                     sh """
-                        docker build -t ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG} .
+                        docker build -t docker.io'/sibisam2301/nextcloud:latest .
                     """
                 }
             }
@@ -44,7 +44,7 @@ pipeline {
                     // Run the Nextcloud container
                     echo 'Deploying Nextcloud Docker container...'
                     sh """
-                        docker run -d --name nextcloud-container -p 8080:80 -v /var/www/html nextcloud:latest
+                        docker run -d --name nextcloud-container -p 9091:80 -v /var/www/html nextcloud:latest
                     """
                 }
             }
@@ -53,12 +53,12 @@ pipeline {
         stage('Push Docker Image to Registry') {
             steps {
                 // Login to Docker registry and push the image to Docker Hub
-                withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'sibisam2301@gmail.com', passwordVariable: 'devika@123')]) {
                     script {
                         echo 'Pushing Nextcloud Docker image to registry...'
                         sh """
-                            echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
-                            docker push ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG}
+                            echo devika@123 | docker login -u sibisam2301@gmail.com --password-stdin
+                            docker push docker.io/sibisam2301/nextcloud:latest
                         """
                     }
                 }
