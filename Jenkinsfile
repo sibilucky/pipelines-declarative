@@ -33,7 +33,7 @@ pipeline {
                     echo 'Deploying Docker container...'
                     sh """
                         docker run -d --name nextcloud-container \
-                        -p 8080:80 \
+                        -p 9091:80 \
                         docker.io/sibisam2301/nextcloud:latest
                     """
                 }
