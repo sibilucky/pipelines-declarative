@@ -69,6 +69,6 @@ pipeline {
             sh 'docker rm -f nextcloud-container || true'
         }
     }
-}
-}
+
+
 
