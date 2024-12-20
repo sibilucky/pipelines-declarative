@@ -1,28 +1,28 @@
 pipeline {
-    agent any  // This pipeline will run on any available Jenkins agent
+    agent any
 
     environment {
-        DOCKER_IMAGE = 'nextcloud'  // The name of the Docker image for Nextcloud
-        DOCKER_TAG = 'latest'       // Docker tag (you can change this based on your needs)
-        DOCKER_REGISTRY = 'docker.io'  // Docker registry (change if you use a private registry)
-        DOCKER_USER = 'sibisam2301'  // Your DockerHub username
-        DOCKER_CREDENTIALS_ID = 'docker-credentials-id'  // Jenkins credentials ID for Docker login
+        DOCKER_IMAGE = 'nextcloud'
+        DOCKER_TAG = 'latest'
+        DOCKER_REGISTRY = 'docker.io'
+        DOCKER_USER = 'sibisam2301'  // Your Docker Hub username
+        DOCKER_CREDENTIALS_ID = 'docker-credentials-id'
     }
 
     stages {
         stage('Checkout SCM') {
             steps {
-                // Checkout code from the Git repository where the Dockerfile and any configuration files are stored
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'docker-credentials-id', url: 'https://github.com/sibilucky/pipelines-declarative.git']])
+                checkout scm
             }
         }
 
-      stage('Build Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
                     echo 'Building Nextcloud Docker Image...'
-                    // Ensure proper syntax for the Docker build command
-                    sh "docker build -t docker.io/sibisam2301/nextcloud:latest ."
+                    sh """
+                        docker build -t ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG} .
+                    """
                 }
             }
         }
@@ -30,11 +30,16 @@ pipeline {
         stage('Deploy Docker Container') {
             steps {
                 script {
-                    echo 'Deploying Docker container...'
+                    echo 'Deploying Nextcloud Docker container...'
+                    
+                    // Stop and remove any existing container with the same name
                     sh """
-                        docker run -d --name nextcloud-container \
-                        -p 9091:80 \
-                        docker.io/sibisam2301/nextcloud:latest
+                        docker rm -f nextcloud-container || true
+                    """
+
+                    // Run the new Docker container
+                    sh """
+                        docker run -d --name nextcloud-container -p 9091:80 ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG}
                     """
                 }
             }
@@ -42,21 +47,22 @@ pipeline {
 
         stage('Push Docker Image to Registry') {
             steps {
-                script {
-                    echo 'Pushing Docker image to registry...'
-                    sh """
-                        docker login -u sibisam2301@gmail.com -p $devika@123
-                        docker push docker.io/sibisam2301/nextcloud:latest
-                    """
+                withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    script {
+                        echo 'Pushing Nextcloud Docker image to Docker registry...'
+                        sh """
+                            echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
+                            docker push ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG}
+                        """
+                    }
                 }
             }
         }
     }
-}
 
     post {
         success {
-            echo 'Pipeline executed successfully! Nextcloud server is up and running.'
+            echo 'Pipeline executed successfully!'
         }
 
         failure {
@@ -64,11 +70,11 @@ pipeline {
         }
 
         always {
-            // Cleanup - remove the Nextcloud container after execution
             echo 'Cleaning up Docker container...'
             sh 'docker rm -f nextcloud-container || true'
         }
     }
+}
 
 
 
