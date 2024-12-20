@@ -17,14 +17,12 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+      stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image for Nextcloud
                     echo 'Building Nextcloud Docker Image...'
-                    sh """
-                        docker build -t docker.io'/sibisam2301/nextcloud:latest .
-                    """
+                    // Ensure proper syntax for the Docker build command
+                    sh "docker build -t docker.io/sibisam2301/nextcloud:latest ."
                 }
             }
         }
@@ -32,19 +30,11 @@ pipeline {
         stage('Deploy Docker Container') {
             steps {
                 script {
-                    // Ensure there is no existing container running with the same name
-                    echo 'Checking if the container exists...'
+                    echo 'Deploying Docker container...'
                     sh """
-                        if [ \$(docker ps -aq -f name=nextcloud-container) ]; then
-                            echo 'Stopping and removing the existing container...'
-                            docker rm -f nextcloud-container
-                        fi
-                    """
-                    
-                    // Run the Nextcloud container
-                    echo 'Deploying Nextcloud Docker container...'
-                    sh """
-                        docker run -d --name nextcloud-container -p 9091:80 -v /var/www/html nextcloud:latest
+                        docker run -d --name nextcloud-container \
+                        -p 8080:80 \
+                        docker.io/sibisam2301/nextcloud:latest
                     """
                 }
             }
@@ -52,19 +42,17 @@ pipeline {
 
         stage('Push Docker Image to Registry') {
             steps {
-                // Login to Docker registry and push the image to Docker Hub
-                withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'sibisam2301@gmail.com', passwordVariable: 'devika@123')]) {
-                    script {
-                        echo 'Pushing Nextcloud Docker image to registry...'
-                        sh """
-                            echo devika@123 | docker login -u sibisam2301@gmail.com --password-stdin
-                            docker push docker.io/sibisam2301/nextcloud:latest
-                        """
-                    }
+                script {
+                    echo 'Pushing Docker image to registry...'
+                    sh """
+                        docker login -u sibisam2301@gmail.com -p $devika@123
+                        docker push docker.io/sibisam2301/nextcloud:latest
+                    """
                 }
             }
         }
     }
+}
 
     post {
         success {
