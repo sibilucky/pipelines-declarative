@@ -31,11 +31,6 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying Nextcloud Docker container...'
-                    
-                    // Stop and remove any existing container with the same name
-                    sh """
-                        docker rm -f nextcloud-container || true
-                    """
 
                     // Run the new Docker container
                     sh """
@@ -71,7 +66,7 @@ pipeline {
 
         always {
             echo 'Cleaning up Docker container...'
-            sh 'docker rm -f nextcloud-container || true'
+           
         }
     }
 }
