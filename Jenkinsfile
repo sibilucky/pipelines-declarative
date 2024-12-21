@@ -21,7 +21,7 @@ pipeline {
                 script {
                     echo 'Building Nextcloud Docker Image...'
                     sh """
-                        docker build -t ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG} .
+                        docker build -t docker.io/sibisam2301/nextcloud:latest .
                     """
                 }
             }
@@ -39,7 +39,7 @@ pipeline {
 
                     // Run the new Docker container
                     sh """
-                        docker run -d --name nextcloud-container -p 9091:80 ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG}
+                        docker run -d --name nextcloud-container -p 9091:80 docker.io/sibisam2301/nextcloud:latest
                     """
                 }
             }
@@ -47,12 +47,12 @@ pipeline {
 
         stage('Push Docker Image to Registry') {
             steps {
-                withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'sibisam2301@gmail.com', passwordVariable: 'devika@123')]) {
                     script {
                         echo 'Pushing Nextcloud Docker image to Docker registry...'
                         sh """
-                            echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
-                            docker push ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_TAG}
+                            echo  devika@123 | docker login -u sibisam2301@gmail.com --password-stdin
+                            docker push docker.io/sibisam2301/nextcloud:latest
                         """
                     }
                 }
